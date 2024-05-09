@@ -113,12 +113,11 @@ module top(input logic clk, input logic reset, input logic [31:0] cyc_cnt, outpu
    m5_if_neq(m5_target, FPGA, ['logic [7:0] uio_in, uio_out, uio_oe;'])
    logic [31:0] r;  // a random value
    always @(posedge clk) r <= m5_if_defined_as(MAKERCHIP, 1, ['$urandom()'], ['0']);
-   assign ui_in = r[7:0];
+   //assign ui_in = r[7:0];
    m5_if_neq(m5_target, FPGA, ['assign uio_in = 8'b0;'])
    logic ena = 1'b0;
    logic rst_n = ! reset;
    
-   /*
    // Or, to provide specific inputs at specific times (as for lab C-TB) ...
    // BE SURE TO COMMENT THE ASSIGNMENT OF INPUTS ABOVE.
    // BE SURE TO DRIVE THESE ON THE B-PHASE OF THE CLOCK (ODD STEPS).
@@ -128,9 +127,36 @@ module top(input logic clk, input logic reset, input logic [31:0] cyc_cnt, outpu
          ui_in = 8'h0;
       #10 // Step 5 cycles, past reset.
          ui_in = 8'hFF;
-      // ...etc.
+      #2
+      // Set Mode to Sender and clear inputs
+         ui_in[7:0] = 8'b1000_0000;
+      
+      // Test Single Inputs
+      for ( i = 0 ; i < 4; i++ ) begin
+            ui_in[7:0] = 8'b1000_0000;
+            #2
+         	ui_in[i] = 1'b1;
+            ui_in[6] = 1'b1;
+            #2
+         ;
+      end
+      
+      // Test Double Inputs
+
+      ui_in[7:0] = 8'b1000_0000;
+      #2
+      ui_in[7:0] = 8'b1100_0011;
+      #2
+      ui_in[7:0] = 8'b1000_0000;
+      #2
+      ui_in[7:0] = 8'b1100_0101;
+      #2     
+      ui_in[7:0] = 8'b1000_1001;
+      #2
+      ui_in[7:0] = 8'b1100_1010;
+        
    end
-   */
+
 
    // Instantiate the Tiny Tapeout module.
    m5_user_module_name tt(.*);
