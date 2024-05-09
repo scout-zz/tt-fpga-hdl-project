@@ -70,6 +70,18 @@
          @5
             *ou_out[0] = $do_send;
    
+   $dec = *ui_in[0];
+   $data[3:0] = *ui_in[4:1];
+   $receiver = *ui_in[7];
+   
+   ?$receiver
+      $value[3:0] = ((>>1$dec == 0) && ($dec == 1)) ? $data : 1'd0;
+      
+      *ou_out = $value[0] == 1 ? 8'b00111111 :
+                $value[1] == 1 ? 8'b00000110 :
+                $value[2] == 1 ? 8'b01001111 :
+                $value[3] == 1 ? 8'b01100110 :
+                   8'b01111001;
    
    
    // Connect Tiny Tapeout outputs. Note that uio_ outputs are not available in the Tiny-Tapeout-3-based FPGA boards.
