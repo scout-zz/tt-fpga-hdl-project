@@ -64,11 +64,11 @@
        
             $an_input = $in[0] || $in[1] || $in[2] || $in[3];
        
-            $do_send = $an_input && ! >>1$an_input
+            $do_send = $an_input && ! >>1$an_input;
        
-            *ou_out[4:1] = $in[3:0];
-         @5
-            *ou_out[0] = $do_send;
+            $send_out[4:1] = $in[3:0];
+         @1
+            $do_send_out = $do_send;
  
    |receiver
       @0
@@ -81,12 +81,15 @@
    
             $value[3:0] = ((>>1$dec == 0) && ($dec == 1)) ? $data : 1'd0;
       
-            *ou_out = $value[0] == 1 ? 8'b00111111 :
-                      $value[1] == 1 ? 8'b00000110 :
-                      $value[2] == 1 ? 8'b01001111 :
-                      $value[3] == 1 ? 8'b01100110 :
-                         8'b01111001;
-                         
+            $recv_out = $value[0] == 1 ? 8'b00111111 :
+                        $value[1] == 1 ? 8'b00000110 :
+                        $value[2] == 1 ? 8'b01001111 :
+                        $value[3] == 1 ? 8'b01100110 :
+                           8'b01111001;
+   |output
+      @0
+         *uo_out[7:0] = /fpga|sender<>0$sender ? {3'b100,$send_out[4:1],$do_send_out} : $recv_out;
+    
    // Connect Tiny Tapeout outputs. Note that uio_ outputs are not available in the Tiny-Tapeout-3-based FPGA boards.
    m5_if_neq(m5_target, FPGA, ['*uio_out = 8'b0;'])
    m5_if_neq(m5_target, FPGA, ['*uio_oe = 8'b0;'])
@@ -117,6 +120,7 @@ module top(input logic clk, input logic reset, input logic [31:0] cyc_cnt, outpu
    m5_if_neq(m5_target, FPGA, ['assign uio_in = 8'b0;'])
    logic ena = 1'b0;
    logic rst_n = ! reset;
+   integer i;
    
    // Or, to provide specific inputs at specific times (as for lab C-TB) ...
    // BE SURE TO COMMENT THE ASSIGNMENT OF INPUTS ABOVE.
@@ -129,31 +133,35 @@ module top(input logic clk, input logic reset, input logic [31:0] cyc_cnt, outpu
          ui_in = 8'hFF;
       #2
       // Set Mode to Sender and clear inputs
-         ui_in[7:0] = 8'b1000_0000;
+         ui_in[7:0] = 8'b0000_0000;
       
       // Test Single Inputs
       for ( i = 0 ; i < 4; i++ ) begin
-            ui_in[7:0] = 8'b1000_0000;
-            #2
+            ui_in[6:0] = 7'b000_0000;
+            #4
          	ui_in[i] = 1'b1;
-            ui_in[6] = 1'b1;
-            #2
+            //ui_in[0] = 1'b1;
+            #4
          ;
       end
       
       // Test Double Inputs
 
-      ui_in[7:0] = 8'b1000_0000;
-      #2
-      ui_in[7:0] = 8'b1100_0011;
-      #2
-      ui_in[7:0] = 8'b1000_0000;
-      #2
-      ui_in[7:0] = 8'b1100_0101;
-      #2     
-      ui_in[7:0] = 8'b1000_1001;
-      #2
-      ui_in[7:0] = 8'b1100_1010;
+      ui_in[6:0] = 7'b000_0000;
+      #4
+      ui_in[6:0] = 7'b100_0011;
+      #4
+      ui_in[6:0] = 7'b000_0000;
+      #4
+      ui_in[6:0] = 7'b100_0101;
+      #4     
+      ui_in[6:0] = 7'b000_0000;
+      #4
+      ui_in[6:0] = 7'b100_1010;
+      #4
+      ui_in[6:0] = 7'b000_0000;
+      #4
+      ui_in[6:0] = 7'b100_1001;
         
    end
 
