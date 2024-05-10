@@ -64,11 +64,11 @@
        
             $an_input = $in[0] || $in[1] || $in[2] || $in[3];
             $counter[11:0] = $reset ? 12'b0 :
-               $an_input ? >>1$counter + {10'b0,~>>1$counter[11]} :
+               $an_input ? >>1$counter + {10'b0,~>>1$counter[10]} :
                   12'b0; 
                
-            $do_send =  >>1$counter[11] && !>>2$counter[11] ;
-       
+            //$do_send =  $counter[11] && !>>1$counter[11] ;
+            $do_send =  $counter > >>1$counter; 
             //$send_out[7:0] = {5'b1000, $in[3:0], 1'b1};
             $send_out[4:1] = $in[3:0];
          @10
