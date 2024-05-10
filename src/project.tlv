@@ -81,16 +81,17 @@
             $data[3:0] = *ui_in[4:1];
             $reset = *reset;
             $rec_in_valid = ((>>1$dec == 0) && ($dec == 1));
-            $recv_out[7:0] = !$reset && $rec_in_valid ?
-                                ($rec_in_valid && ($data[0] == 1)) ? 8'b00000110 :
-                                ($rec_in_valid && ($data[1] == 1)) ? 8'b01011011 :
-                                ($rec_in_valid && ($data[2] == 1)) ? 8'b01100110 :
-                                ($rec_in_valid && ($data[3] == 1)) ? 8'b01111111 :
-                                  // Default
-                                  !$rec_in_valid ? 8'b01111001 : 8'b0 :
-                             // Default
-                             $recv_out[7:0];
-             
+            $invalid_input = ( {{3'b0},$data[3]} + {{3'b0},$data[2]} + {{3'b0},$data[1]} + {{3'b0},$data[0]}) > 3'b1;
+            $recv_out[7:0] =
+                $reset ? 8'b01000000 :
+                ! $rec_in_valid ? >>1$recv_out :
+                $invalid_input ? 8'b01111001 :
+                $data[0] ? 8'b00000110 :
+                $data[1] ? 8'b01011011 :
+                $data[2] ? 8'b01100110 :
+                // Default
+                           8'b01111111 ;
+                 
    |output
       @0
          *uo_out[7:0] = /fpga|sender<>0$sender ? 
