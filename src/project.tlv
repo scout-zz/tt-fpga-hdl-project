@@ -16,7 +16,7 @@
    //-------------------------------------------------------
    // Build Target Configuration
    //
-   var(my_design, tt_um_The-Chairman_send_receive)   /// The name of your top-level TT module, to match your info.yml.
+   var(my_design, tt_um_scout-zz_send_receive)   /// The name of your top-level TT module, to match your info.yml.
    var(target, ASIC)   /// Note, the FPGA CI flow will set this to FPGA.
    //-------------------------------------------------------
    
