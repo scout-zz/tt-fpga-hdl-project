@@ -64,7 +64,7 @@
        
             $an_input = $in[0] || $in[1] || $in[2] || $in[3];
        
-            $do_send = $an_input && ! >>1$an_input;
+            $do_send = $an_input && ! >>10$an_input;
        
             //$send_out[7:0] = {5'b1000, $in[3:0], 1'b1};
             $send_out[4:1] = $in[3:0];
@@ -97,6 +97,19 @@
          *uo_out[7:0] = /fpga|sender<>0$sender ? 
              {3'b100,/fpga|sender<>0$send_out[4:1],/fpga|sender>>10$do_send_out} : 
              /fpga|receiver<>0$recv_out;
+   /*        
+   |timing
+      @0
+         $reset = *reset;
+         $timer[7:0] = 
+            $reset ? 8'b0 :
+            $timer[7:0] < 8'b1111_1111 ? >>1$timer[7:0] + 8'b1 : 8'b0 ;
+   */         
+            
+ 
+            
+            
+         
     
    // Connect Tiny Tapeout outputs. Note that uio_ outputs are not available in the Tiny-Tapeout-3-based FPGA boards.
    m5_if_neq(m5_target, FPGA, ['*uio_out = 8'b0;'])
@@ -147,10 +160,10 @@ module top(input logic clk, input logic reset, input logic [31:0] cyc_cnt, outpu
       // Test Single Inputs
       for ( i = 0 ; i < 4; i++ ) begin
             ui_in[6:0] = 7'b000_0000;
-            #4
+            #40
          	ui_in[i] = 1'b1;
             //ui_in[0] = 1'b1;
-            #4
+            #40
          ;
       end
       
@@ -177,10 +190,10 @@ module top(input logic clk, input logic reset, input logic [31:0] cyc_cnt, outpu
       // Test Single Inputs
       for ( i = 0 ; i < 4; i++ ) begin
             ui_in[6:0] = 7'b000_0000;
-            #4
+            #40
          	ui_in[i + 1] = 1'b1;
             ui_in[0] = 1'b1;
-            #4
+            #40
          ;
       end
       
