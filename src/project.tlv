@@ -58,7 +58,7 @@
 
       ?$sender
          @0
-            *uo_out[7] = 1'b1;
+            //*uo_out[7] = 1'b1;
  
             $in[6:0] = *ui_in[6:0];
        
@@ -66,6 +66,7 @@
        
             $do_send = $an_input && ! >>1$an_input;
        
+            //$send_out[7:0] = {5'b1000, $in[3:0], 1'b1};
             $send_out[4:1] = $in[3:0];
          @1
             $do_send_out = $do_send;
@@ -78,17 +79,23 @@
          @0
             $dec = *ui_in[0];
             $data[3:0] = *ui_in[4:1];
-   
-            $value[3:0] = ((>>1$dec == 0) && ($dec == 1)) ? $data : 1'd0;
-      
-            $recv_out = $value[0] == 1 ? 8'b00111111 :
-                        $value[1] == 1 ? 8'b00000110 :
-                        $value[2] == 1 ? 8'b01001111 :
-                        $value[3] == 1 ? 8'b01100110 :
-                           8'b01111001;
+            $reset = *reset;
+            $rec_in_valid = ((>>1$dec == 0) && ($dec == 1));
+            $recv_out[7:0] = !$reset && $rec_in_valid ?
+                                ($rec_in_valid && ($data[0] == 1)) ? 8'b00000110 :
+                                ($rec_in_valid && ($data[1] == 1)) ? 8'b01011011 :
+                                ($rec_in_valid && ($data[2] == 1)) ? 8'b01100110 :
+                                ($rec_in_valid && ($data[3] == 1)) ? 8'b01111111 :
+                                  // Default
+                                  !$rec_in_valid ? 8'b01111001 : 8'b0 :
+                             // Default
+                             $recv_out[7:0];
+             
    |output
       @0
-         *uo_out[7:0] = /fpga|sender<>0$sender ? {3'b100,/fpga|sender<>0$send_out[4:1],/fpga|sender>>1$do_send_out} : /fpga|receiver<>0$recv_out;
+         *uo_out[7:0] = /fpga|sender<>0$sender ? 
+             {3'b100,/fpga|sender<>0$send_out[4:1],/fpga|sender>>1$do_send_out} : 
+             /fpga|receiver<>0$recv_out;
     
    // Connect Tiny Tapeout outputs. Note that uio_ outputs are not available in the Tiny-Tapeout-3-based FPGA boards.
    m5_if_neq(m5_target, FPGA, ['*uio_out = 8'b0;'])
@@ -132,6 +139,7 @@ module top(input logic clk, input logic reset, input logic [31:0] cyc_cnt, outpu
       #10 // Step 5 cycles, past reset.
          ui_in = 8'hFF;
       #2
+      // Testing Sender ///////////////////////////////
       // Set Mode to Sender and clear inputs
          ui_in[7:0] = 8'b0000_0000;
       
@@ -162,7 +170,37 @@ module top(input logic clk, input logic reset, input logic [31:0] cyc_cnt, outpu
       ui_in[6:0] = 7'b000_0000;
       #4
       ui_in[6:0] = 7'b100_1001;
-        
+       
+      // Testing Reciever ///////////////////////////////////////
+      ui_in[7:0] = 8'b1000_0000;
+      // Test Single Inputs
+      for ( i = 0 ; i < 4; i++ ) begin
+            ui_in[6:0] = 7'b000_0000;
+            #4
+         	ui_in[i + 1] = 1'b1;
+            ui_in[0] = 1'b1;
+            #4
+         ;
+      end
+      
+      // Test Double Inputs
+
+      ui_in[4:0] = 5'b00000;
+      #4
+      ui_in[4:0] = 5'b00111;
+      #4
+      ui_in[4:0] = 5'b00000;
+      #4
+      ui_in[4:0] = 5'b01011;
+      #4     
+      ui_in[4:0] = 5'b00000;
+      #4
+      ui_in[4:0] = 5'b1010_1;
+      #4
+      ui_in[4:0] = 5'b0000_0;
+      #4
+      ui_in[4:0] = 5'b1001_1;
+       
    end
 
 
