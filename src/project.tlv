@@ -68,7 +68,7 @@
        
             //$send_out[7:0] = {5'b1000, $in[3:0], 1'b1};
             $send_out[4:1] = $in[3:0];
-         @1
+         @10
             $do_send_out = $do_send;
  
    |receiver
@@ -83,19 +83,19 @@
             $rec_in_valid = ((>>1$dec == 0) && ($dec == 1));
             $invalid_input = ( {{3'b0},$data[3]} + {{3'b0},$data[2]} + {{3'b0},$data[1]} + {{3'b0},$data[0]}) > 3'b1;
             $recv_out[7:0] =
-                $reset ? 8'b01000000 :
+                $reset ? 8'b010_00000 :
                 ! $rec_in_valid ? >>1$recv_out :
-                $invalid_input ? 8'b01111001 :
-                $data[0] ? 8'b00000110 :
-                $data[1] ? 8'b01011011 :
-                $data[2] ? 8'b01100110 :
+                $invalid_input ? 8'b0111_1001 :
+                $data[0] ? 8'b0000_0110 :
+                $data[1] ? 8'b0101_1011 :
+                $data[2] ? 8'b0110_0110 :
                 // Default
-                           8'b01111111 ;
+                           8'b0111_1111 ;
                  
    |output
       @0
          *uo_out[7:0] = /fpga|sender<>0$sender ? 
-             {3'b100,/fpga|sender<>0$send_out[4:1],/fpga|sender>>1$do_send_out} : 
+             {3'b100,/fpga|sender<>0$send_out[4:1],/fpga|sender>>10$do_send_out} : 
              /fpga|receiver<>0$recv_out;
     
    // Connect Tiny Tapeout outputs. Note that uio_ outputs are not available in the Tiny-Tapeout-3-based FPGA boards.
