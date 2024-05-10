@@ -37,7 +37,6 @@
    // Include Tiny Tapeout Lab.
    m4_include_lib(['https:/']['/raw.githubusercontent.com/os-fpga/Virtual-FPGA-Lab/35e36bd144fddd75495d4cbc01c4fc50ac5bde6f/tlv_lib/tiny_tapeout_lib.tlv'])
 
-
 \TLV my_design()
    
    
@@ -49,12 +48,13 @@
    // ==================
    
    // Note that pipesignals assigned here can be found under /fpga_pins/fpga.
-   
+
    
    
    |sender
       @0
          $sender = ! *ui_in[7];
+         $reset = *reset;
 
       ?$sender
          @0
@@ -63,8 +63,11 @@
             $in[6:0] = *ui_in[6:0];
        
             $an_input = $in[0] || $in[1] || $in[2] || $in[3];
-       
-            $do_send = $an_input && ! >>10$an_input;
+            $counter[11:0] = $reset ? 12'b0 :
+               $an_input ? >>1$counter + {10'b0,>>1$counter[11]} :
+                  12'b0; 
+               
+            $do_send =  >>1$counter[11] && !>>2$counter[11] ;
        
             //$send_out[7:0] = {5'b1000, $in[3:0], 1'b1};
             $send_out[4:1] = $in[3:0];
@@ -81,7 +84,8 @@
             $data[3:0] = *ui_in[4:1];
             $reset = *reset;
             $rec_in_valid = ((>>1$dec == 0) && ($dec == 1));
-            $invalid_input = ( {{3'b0},$data[3]} + {{3'b0},$data[2]} + {{3'b0},$data[1]} + {{3'b0},$data[0]}) > 3'b1;
+            $invalid_input = ( {{3'b0},$data[3]} + {{3'b0},$data[2]} + {{3'b0},$data[1]} + {{3'b0},$data[0]}) > 4'b1;
+            
             $recv_out[7:0] =
                 $reset ? 8'b010_00000 :
                 ! $rec_in_valid ? >>1$recv_out :
@@ -221,7 +225,7 @@ module top(input logic clk, input logic reset, input logic [31:0] cyc_cnt, outpu
    // Instantiate the Tiny Tapeout module.
    m5_user_module_name tt(.*);
    
-   assign passed = top.cyc_cnt > 80;
+   assign passed = top.cyc_cnt > 600;
    assign failed = 1'b0;
 endmodule
 
