@@ -88,7 +88,7 @@
                            8'b01111001;
    |output
       @0
-         *uo_out[7:0] = /fpga|sender<>0$sender ? {3'b100,$send_out[4:1],$do_send_out} : $recv_out;
+         *uo_out[7:0] = /fpga|sender<>0$sender ? {3'b100,/fpga|sender<>0$send_out[4:1],/fpga|sender>>1$do_send_out} : /fpga|receiver<>0$recv_out;
     
    // Connect Tiny Tapeout outputs. Note that uio_ outputs are not available in the Tiny-Tapeout-3-based FPGA boards.
    m5_if_neq(m5_target, FPGA, ['*uio_out = 8'b0;'])
